@@ -1,0 +1,27 @@
+on: push
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      # 1) Текущее репо (то, что триггернуло workflow)
+      - name: Checkout current repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0            # (опц.) полная история, если нужны тэги/коммиты
+
+      # 2) Дополнительный (например, мок) репозиторий
+      - name: Checkout mock repo
+        uses: actions/checkout@v4
+        with:
+          repository: iliakabanov/Insurance-Payments-Predictions   # <owner>/<repo>
+          ref: main                        # ветка/тег/sha; можно 'v1.2.3' или конкретный SHA
+          path: mock-repo                  # положить во вложенную папку mock-repo
+
+      # Пример: обращаемся к обоим деревьям кода
+      - name: List both worktrees
+        run: |
+          echo "== current repo =="
+          ls -la
+          echo "== mock repo =="
+          ls -la mock-repo
