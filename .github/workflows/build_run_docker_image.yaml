@@ -1,0 +1,55 @@
+name: Build and Run Docker image
+on:
+  push
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    outputs:
+      image_built: ${{ steps.check.outputs.exists }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check if Dockerfile exists
+        id: check
+        run: |
+          if [ -f Dockerfile ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Docker image
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          docker build -t my-app:latest .
+
+      - name: Save image as artifact
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          docker save my-app:latest -o image.tar
+        # upload the image so another job (new runner) can use it
+      - name: Upload image artifact
+        if: steps.check.outputs.exists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: image.tar
+
+  image-runner:
+    needs: build-image
+    if: needs.build-image.outputs.image_built == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: .
+
+      - name: Load image
+        run: docker load -i image.tar
+
+      - name: Run image (executes ENTRYPOINT)
+        run: docker run --rm my-app:latest
