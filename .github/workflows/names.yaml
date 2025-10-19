@@ -1,0 +1,9 @@
+on:
+    push
+jobs:
+    idle:
+        name: job name
+        runs-on: ubuntu-latest
+        steps:
+            -
+                run: echo Idle Step
