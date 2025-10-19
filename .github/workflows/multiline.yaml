@@ -3,7 +3,7 @@ on:
 jobs:
     idle:
         runs-on: ubuntu-latest
-        steps:
+        steps: |
             -
                 run: echo Idle Step
                      sleep 20
